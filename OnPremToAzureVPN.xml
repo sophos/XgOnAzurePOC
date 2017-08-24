@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Request>
+<Login>
+<Username>admin</Username>
+<Password>MyAdminPassword001</Password>
+</Login>
+<Set operation="add">
+  <IPHost transactionid="">
+    <Name>OnPremLAN</Name>
+    <IPFamily>IPv4</IPFamily>
+    <HostType>Network</HostType>
+    <IPAddress>10.10.0.0</IPAddress>
+    <Subnet>255.255.0.0</Subnet>
+  </IPHost>
+  <IPHost transactionid="">
+    <Name>AzureLAN</Name>
+    <IPFamily>IPv4</IPFamily>
+    <HostType>Network</HostType>
+    <IPAddress>10.0.0.0</IPAddress>
+    <Subnet>255.255.0.0</Subnet>
+  </IPHost> 
+ <VPNIPSecConnection transactionid="">
+    <Configuration>
+      <Name>ConnectionToAzureSophosXG</Name>
+      <Description/>
+      <ConnectionType>SiteToSite</ConnectionType>
+      <Policy>OnPremToAzure</Policy>
+      <ActionOnVPNRestart>Initiate</ActionOnVPNRestart>
+      <AuthenticationType>PresharedKey</AuthenticationType>
+      <SubnetFamily>IPv4</SubnetFamily>
+      <AliasLocalWANPort>PortB</AliasLocalWANPort>
+      <RemoteHost>13.80.116.144</RemoteHost>
+      <NATedLAN/>
+      <LocalIDType>IP Address</LocalIDType>
+      <LocalID>40.71.201.208</LocalID>
+      <RemoteNetwork>
+        <Network>AzureLAN</Network>
+      </RemoteNetwork>
+      <RemoteIDType>IP Address</RemoteIDType>
+      <RemoteID>13.80.116.144</RemoteID>
+      <UserAuthenticationMode>Disable</UserAuthenticationMode>
+      <AllowedUser>
+        <User/>
+      </AllowedUser>
+      <Protocol>ALL</Protocol>
+      <LocalPort/>
+      <RemotePort/>
+      <LocalWANPort>PortB</LocalWANPort>
+      <DisconnectOnIdleInterval/>
+      <Status>Deactive</Status>
+      <PresharedKey passwordform="encrypt">A8EC7D6156A604B2DCA53B74ED72BBE4</PresharedKey>
+      <Username/>
+      <Password/>
+      <LocalSubnet>OnPremLAN</LocalSubnet>
+    </Configuration>
+  </VPNIPSecConnection>
+  <SecurityPolicy transactionid="">
+    <Name>Auto added firewall policy for MTA</Name>
+    <Description>This rule was added automatically by SFOS MTA. However you could edit this policy based on network requirement.</Description>
+    <IPFamily>IPv4</IPFamily>
+    <Status>Disable</Status>
+    <Position>Top</Position>
+    <PolicyType>PublicNonHTTPPolicy</PolicyType>
+    <MatchIdentity>Disable</MatchIdentity>
+    <PublicNonHTTPBasedPolicy>
+      <ScanSMTP>Enable</ScanSMTP>
+      <ScanIMAP>Disable</ScanIMAP>
+      <ScanIMAPS>Disable</ScanIMAPS>
+      <ScanPOP3>Disable</ScanPOP3>
+      <ScanSMTPS>Enable</ScanSMTPS>
+      <ScanPOP3S>Disable</ScanPOP3S>
+    </PublicNonHTTPBasedPolicy>
+    <IntrusionPrevention>None</IntrusionPrevention>
+    <TrafficShappingPolicy>None</TrafficShappingPolicy>
+    <LogTraffic>Disable</LogTraffic>
+    <RewriteSourceAddress>Enable</RewriteSourceAddress>
+    <SourceSecurityHeartbeat>Disable</SourceSecurityHeartbeat>
+    <MinimumSourceHBPermitted>No Restriction</MinimumSourceHBPermitted>
+    <DestSecurityHeartbeat>Disable</DestSecurityHeartbeat>
+    <MinimumDestinationHBPermitted>No Restriction</MinimumDestinationHBPermitted>
+    <OutboundAddress>MASQ</OutboundAddress>
+  </SecurityPolicy>
+  <SecurityPolicy transactionid="">
+    <Name>OnPremToAzure</Name>
+    <Description/>
+    <IPFamily>IPv4</IPFamily>
+    <Status>Enable</Status>
+    <Position>After</Position>
+    <PolicyType>Network</PolicyType>
+    <After>
+      <Name>Auto added firewall policy for MTA</Name>
+    </After>
+    <DestinationZones>
+      <Zone>VPN</Zone>
+    </DestinationZones>
+    <Schedule>All The Time</Schedule>
+    <Action>Accept</Action>
+    <LogTraffic>Enable</LogTraffic>
+    <MatchIdentity>Disable</MatchIdentity>
+    <SourceNetworks>
+      <Network>OnPremLAN</Network>
+    </SourceNetworks>
+    <DestinationNetworks>
+      <Network>AzureLAN</Network>
+    </DestinationNetworks>
+    <DSCPMarking>-1</DSCPMarking>
+    <ApplicationControl>None</ApplicationControl>
+    <ApplicationBaseQoSPolicy>Revoke</ApplicationBaseQoSPolicy>
+    <WebFilter>None</WebFilter>
+    <WebCategoryBaseQoSPolicy>Revoke</WebCategoryBaseQoSPolicy>
+    <IntrusionPrevention>None</IntrusionPrevention>
+    <TrafficShappingPolicy>None</TrafficShappingPolicy>
+    <RewriteSourceAddress>Disable</RewriteSourceAddress>
+    <PrimaryGateway/>
+    <BackupGateway/>
+    <ScanHTTP>Disable</ScanHTTP>
+    <ScanHTTPS>Disable</ScanHTTPS>
+    <Sandstorm>Disable</Sandstorm>
+    <ScanFTP>Disable</ScanFTP>
+    <SourceSecurityHeartbeat>Disable</SourceSecurityHeartbeat>
+    <MinimumSourceHBPermitted>No Restriction</MinimumSourceHBPermitted>
+    <DestSecurityHeartbeat>Disable</DestSecurityHeartbeat>
+    <MinimumDestinationHBPermitted>No Restriction</MinimumDestinationHBPermitted>
+  </SecurityPolicy>
+  <SecurityPolicy transactionid="">
+    <Name>AzureToOnPrem</Name>
+    <Description/>
+    <IPFamily>IPv4</IPFamily>
+    <Status>Enable</Status>
+    <Position>After</Position>
+    <PolicyType>Network</PolicyType>
+    <After>
+      <Name>OnPremToAzure</Name>
+    </After>
+    <SourceZones>
+      <Zone>VPN</Zone>
+    </SourceZones>
+    <Schedule>All The Time</Schedule>
+    <Action>Accept</Action>
+    <LogTraffic>Enable</LogTraffic>
+    <MatchIdentity>Disable</MatchIdentity>
+    <SourceNetworks>
+      <Network>AzureLAN</Network>
+    </SourceNetworks>
+    <DestinationNetworks>
+      <Network>OnPremLAN</Network>
+    </DestinationNetworks>
+    <DSCPMarking>-1</DSCPMarking>
+    <ApplicationControl>None</ApplicationControl>
+    <ApplicationBaseQoSPolicy>Revoke</ApplicationBaseQoSPolicy>
+    <WebFilter>None</WebFilter>
+    <WebCategoryBaseQoSPolicy>Revoke</WebCategoryBaseQoSPolicy>
+    <IntrusionPrevention>None</IntrusionPrevention>
+    <TrafficShappingPolicy>None</TrafficShappingPolicy>
+    <RewriteSourceAddress>Disable</RewriteSourceAddress>
+    <PrimaryGateway/>
+    <BackupGateway/>
+    <ScanHTTP>Disable</ScanHTTP>
+    <ScanHTTPS>Disable</ScanHTTPS>
+    <Sandstorm>Disable</Sandstorm>
+    <ScanFTP>Disable</ScanFTP>
+    <SourceSecurityHeartbeat>Disable</SourceSecurityHeartbeat>
+    <MinimumSourceHBPermitted>No Restriction</MinimumSourceHBPermitted>
+    <DestSecurityHeartbeat>Disable</DestSecurityHeartbeat>
+    <MinimumDestinationHBPermitted>No Restriction</MinimumDestinationHBPermitted>
+  </SecurityPolicy>
+</Set>
+</Request>
