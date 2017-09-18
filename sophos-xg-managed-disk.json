@@ -1,0 +1,268 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+   "xgVmName": {
+      "type": "string",
+      "defaultValue": "sophos-xg",
+      "metadata": {
+        "description": "Name for the Virtual Machine."
+      }
+    },
+    "xgImageSku": {
+      "type": "string",
+      "defaultValue": "byol",
+      "allowedValues": [
+        "byol",
+        "payg"
+      ],
+      "metadata": {
+        "description": "License type to use."
+      }
+    },
+    "xgVmSize": {
+      "type": "string",
+      "defaultValue": "Standard_DS2",
+      "metadata": {
+        "description": "Size of the Virtual Machine."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the Virtual Machine."
+      }
+    }
+  },
+  "variables": {
+    "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'sophosxg')]",
+    "location": "[resourceGroup().Location]",
+    "storageType": "Standard_LRS",
+    "xgWanNic": "sophos-xg-wan-nic",
+    "xgLanNic": "sophos-xg-lan-nic",
+    "xgPublicIpName": "sophosxg-pip",
+    "xgPublicIPDnsName": "[concat('sophosxg', uniqueString(resourceGroup().id))]",
+    "netName": "sophos-xg-vnet",
+    "wanName": "sophos-xg-vnet-frontend",
+    "lanName": "sophos-xg-vnet-backend",
+    "netPrefix": "10.10.0.0/16",
+    "wanPrefix": "10.10.1.0/24",
+    "lanPrefix": "10.10.2.0/24",
+    "xgLanIp": "10.10.2.5",
+    "apiVersion": {
+      "resources": {
+        "deployments": "2016-02-01"
+      },
+      "network": "2016-06-01",
+      "storage": "2016-01-01",
+      "compute": "2017-03-30"
+    },
+    "xgImagePublisher": "sophos",
+    "xgImageOffer": "sophos-xg",
+    "xgAdminUsername": "azureuser",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('netName'))]",
+    "wanSubnetRef": "[concat(variables('vnetID'), '/subnets/', variables('wanName'))]",
+    "lanSubnetRef": "[concat(variables('vnetID'), '/subnets/', variables('lanName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[concat(variables('storageAccountName'))]",
+      "apiVersion": "[variables('apiVersion').storage]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "storageAccount"
+      },
+      "properties": {
+      },
+      "sku": {
+        "name": "[variables('storageType')]"
+      },
+      "kind": "Storage"
+    },
+    {
+      "name": "[variables('netName')]",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "[variables('apiVersion').network]",
+      "tags": {
+        "displayName": "virtualNetwork"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('netPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('wanName')]",
+            "properties": {
+              "addressPrefix": "[variables('wanPrefix')]"
+            }
+          },
+          {
+            "name": "[variables('lanName')]",
+            "properties": {
+              "addressPrefix": "[variables('lanPrefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2016-06-01",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('xgPublicIpName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "xgPublicIp"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "dnsSettings": {
+          "domainNameLabel": "[variables('xgPublicIPDnsName')]"
+        }
+      }
+    },
+
+    {
+      "apiVersion": "[variables('apiVersion').network]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('XgWanNic')]",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "XgWanNic"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('xgPublicIpName'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('netName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('xgPublicIpName'))]"
+              },
+              "subnet": {
+                "id": "[variables('wanSubnetRef')]"
+              }
+            }
+          }
+        ],
+        "enableIPForwarding": true
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion').network]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('xgLanNic')]",
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "XgLanNic"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('netName'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[variables('xgLanIp')]",
+              "subnet": {
+                "id": "[variables('lanSubnetRef')]"
+              }
+            }
+          }
+        ],
+        "enableIPForwarding": true
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion').compute]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('XgVmName')]",
+      "plan": {
+        "publisher": "[variables('xgImagePublisher')]",
+        "product": "[variables('xgImageOffer')]",
+        "name": "[parameters('xgImageSku')]"
+      },
+      "location": "[variables('location')]",
+      "tags": {
+        "displayName": "XgVm"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('xgLanNic'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('xgWanNic'))]"
+      ],
+      "properties": {
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2016-01-01').primaryEndpoints.blob)]"
+          }
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('xgVmSize')]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('xgWanNic'))]",
+              "properties": {
+                "primary": true
+              }
+            },
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('xgLanNic'))]",
+              "properties": {
+                "primary": false
+              }
+            }
+          ]
+        },
+        "osProfile": {
+          "computerName": "[parameters('XgVmName')]",
+          "adminUsername": "[variables('xgAdminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('xgImagePublisher')]",
+            "offer": "[variables('xgImageOffer')]",
+            "sku": "[parameters('xgImageSku')]",
+            "version": "latest"
+          },
+          "dataDisks": [
+            {
+              "name": "[concat(parameters('XgVmName'),'-dataDisk')]",
+              "lun": 0,
+              "createOption": "FromImage"
+            }
+          ],
+          "osDisk": {
+            "name": "[concat(parameters('XgVmName'),'-osDisk')]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        }
+      }
+    }
+  ],
+
+  "outputs": {
+    "publicIpId": {
+      "value": "[resourceId(concat('Microsoft.Network','/','publicIPAddresses'),variables('xgPublicIpName'))]",
+      "type": "string"
+    },
+    "fqdn": {
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses',variables('xgPublicIpName')),'2016-06-01').dnsSettings.fqdn]",
+      "type": "string"
+    }
+  }
+ }
