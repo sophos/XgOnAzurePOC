@@ -65,11 +65,11 @@
     "netName": "onprem-xg-vnet",
     "wanName": "onprem-xg-vnet-frontend",
     "lanName": "onprem-xg-vnet-backend",
-    "netPrefix": "10.10.0.0/16",
-    "wanPrefix": "10.10.1.0/24",
-    "lanPrefix": "10.10.2.0/24",
-    "xgLanIp": "10.10.2.5",
-    "srvLanIp": "10.10.2.10",
+    "netPrefix": "10.100.0.0/16",
+    "wanPrefix": "10.100.1.0/24",
+    "lanPrefix": "10.100.2.0/24",
+    "xgLanIp": "10.100.2.5",
+    "srvLanIp": "10.100.2.10",
     "apiVersion": {
       "resources": {
         "deployments": "2016-02-01"
