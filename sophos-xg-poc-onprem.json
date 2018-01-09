@@ -35,7 +35,7 @@
     },
     "xgVmSize": {
       "type": "string",
-      "defaultValue": "Standard_DS2",
+      "defaultValue": "Standard_D2_V2",
       "metadata": {
         "description": "Size of the Virtual Machine."
       }
@@ -81,7 +81,7 @@
     "xgImagePublisher": "sophos",
     "xgImageOffer": "sophos-xg",
     "xgAdminUsername": "azureuser",
-    "srvVmSize": "Standard_DS1",
+    "srvVmSize": "Standard_D2_V2",
     "srvImagePublisher": "Canonical",
     "srvImageOffer": "UbuntuServer",
     "srvVmOSVersion": "14.04.2-LTS",
